@@ -1,11 +1,11 @@
-import { test, expect, beforeAll, afterAll } from 'vitest'
-import { process, processLinksIn, urlFor } from './fetcher'
+import { test, expect, beforeAll, afterAll, afterEach } from 'vitest'
+import Fetcher, { processLinksIn, urlFor } from './fetcher'
 import { Readable } from 'node:stream'
-import { mockFetch, restoreFetch } from './mocks'
+import { server } from './mocks'
 
-beforeAll(() => mockFetch())
-
-afterAll(() => restoreFetch())
+beforeAll(() => server.listen())
+afterEach(() => server.resetHandlers())
+afterAll(() => server.close())
 
 let html = `<a href=google.com>Google</a> abc
    <a href=mail.google.com/mail/1>Mail</a> abc
@@ -24,7 +24,7 @@ test('extract links', async () => {
 })
 
 test('process', async () => {
-  let result = await process('http://x.abc.com')
+  let result = await new Fetcher('http://x.abc.com').start()
   expect(result).toEqual([
     'http://x.abc.com/pages/1',
     'http://x.abc.com/pages/about',
@@ -33,25 +33,25 @@ test('process', async () => {
 })
 
 test('process a url that fails to be fetched', async () => {
-  await expect(process('http://x.yahoo.com')).rejects.toThrow(
-    'error fetching http://x.yahoo.com/, Error: Network Error'
+  await expect(new Fetcher('http://x.yahoo.com').start()).rejects.toThrow(
+    /error fetching http:\/\/x\.yahoo\.com\//
   )
 })
 
 test('process a url that returns an error status', async () => {
-  await expect(process('http://status500.abc.com')).rejects.toThrow(
+  await expect(new Fetcher('http://status500.abc.com').start()).rejects.toThrow(
     'error fetching http://status500.abc.com/, status: 500.'
   )
 })
 
-test('process a url that returns an error status', async () => {
-  await expect(process('http://error.abc.com')).rejects.toThrow(
-    'error fetching http://error.abc.com/, status: 0.'
+test('process a url that returns a network error', async () => {
+  await expect(new Fetcher('http://error.abc.com').start()).rejects.toThrow(
+    /error fetching http:\/\/error\.abc\.com\//
   )
 })
 
 test('process a url that returns an null body', async () => {
-  await expect(process('http://null.abc.com')).rejects.toThrow(
+  await expect(new Fetcher('http://null.abc.com').start()).rejects.toThrow(
     'error fetching http://null.abc.com/, body is null.'
   )
 })

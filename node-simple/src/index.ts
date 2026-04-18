@@ -1,4 +1,4 @@
-import { crawl } from './crawler.ts'
+import Crawler from './crawler.ts'
 
 function isValidUrl(s: string) {
   try {
@@ -15,6 +15,13 @@ if (process.argv.length != 3 || !isValidUrl(process.argv[2])) {
   console.log(USAGE)
   process.exit(1)
 } else {
-  const url = new URL(process.argv[2])
-  crawl(url)
+  const crawler = new Crawler()
+  crawler.crawl(process.argv[2])
+    .then((links) => {
+      console.log(links)
+    })
+    .catch((err) => {
+      console.error(err)
+      process.exit(1)
+    })
 }

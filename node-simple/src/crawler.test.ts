@@ -1,29 +1,35 @@
-import { crawl, visited } from './crawler'
-import { test, expect, beforeAll, afterAll } from 'vitest'
+import Crawler from './crawler'
+import { test, expect, beforeAll, afterAll, afterEach } from 'vitest'
 
-import { mockFetch, restoreFetch } from './mocks'
+import { server } from './mocks'
+import type { Links } from './types.ts'
 
-beforeAll(() => mockFetch())
-
-afterAll(() => restoreFetch())
+beforeAll(() => server.listen())
+afterEach(() => server.resetHandlers())
+afterAll(() => server.close())
 
 test('crawl', async () => {
-  await crawl(new URL('http://x.abc.com'))
-  expect(visited).toEqual(
-    new Set([
+  const result: Links = await new Crawler().crawl('http://x.abc.com')
+  expect(result).toEqual(
+    [
       'http://x.abc.com/',
       'http://x.abc.com/pages/1',
       'http://x.abc.com/pages/about',
       'http://x.abc.com/pages/2',
       'http://x.abc.com/3',
     ])
-  )
+})
+
+test('crawl deduplicates relative and absolute links', async () => {
+  const result: Links = await new Crawler().crawl('http://y.abc.com')
+  expect(result).toEqual([
+    'http://y.abc.com/',
+    'http://y.abc.com/info',
+    'http://y.abc.com/about',
+  ])
 })
 
 test('crawl on an erroneous url', async () => {
-  await expect(crawl(new URL('http://status500.abc.com'))).rejects.toThrow(
-    'error fetching http://status500.abc.com/, status: 500.'
-  )
-
-  expect(visited).toEqual(new Set(['http://status500.abc.com/']))
+  const result = await new Crawler().crawl('http://status500.abc.com')
+  expect(result).toEqual(['http://status500.abc.com/'])
 })

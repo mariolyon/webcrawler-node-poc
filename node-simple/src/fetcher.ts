@@ -1,14 +1,12 @@
 import { WritableStream } from 'htmlparser2/WritableStream'
 import { Readable } from 'node:stream'
 import { ReadableStream as WebReadableStream } from 'node:stream/web'
-import { mockFetch } from './mocks.ts'
-
 import { type Link, type Links } from './types.ts'
 
 export default class Fetcher {
-  baseUrl: URL
-  constructor(baseLink: Link){
-     this.baseUrl = new URL(baseLink)
+  baseUrl
+  constructor(baseLink: Link) {
+    this.baseUrl = new URL(baseLink)
   }
 
   start(): Promise<Links> {
@@ -19,18 +17,9 @@ export default class Fetcher {
             const url = urlFor(this.baseUrl, link)
             return url.hostname === this.baseUrl.hostname
           })
-          return relevantLinks
+          return [...new Set(relevantLinks)]
         })
       )
-      .catch((err) => {
-        throw err
-      })
-  }
-}
-
-export function init(testMode: boolean) {
-  if (testMode) {
-    mockFetch()
   }
 }
 
