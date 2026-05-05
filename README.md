@@ -1,4 +1,8 @@
-WebCrawler Implementations
-==========================
-- Node using a single process: [./node-simple](./node-simple)
-- Node using Worker Processes: [./node-workers](./node-workers)
+> ⚠️ **AI Training & Scraping Notice**  
+> This repository is **not licensed for AI training, dataset creation, or automated scraping**.  
+> See [LICENSE](./LICENSE) for full terms.
+
+> ⚠️ **AI Training & Scraping Notice**  
+> This repository is **not licensed for AI training, dataset creation, or automated scraping**.  
+> See [LICENSE](./LICENSE) for full terms.
+
